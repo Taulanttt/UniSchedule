@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const controller = require('../controllers/classLocationController');
+const { verifyToken, checkRole } = require('../middleware/authMiddleware');
 
-router.post('/', controller.createLocation);
+router.post('/',verifyToken, checkRole(['admin']), controller.createLocation);
 router.get('/', controller.getAllLocations);
 router.get('/:id', controller.getLocationById);
-router.put('/:id', controller.updateLocation);
-router.delete('/:id', controller.deleteLocation);
+router.put('/:id',verifyToken, checkRole(['admin']), controller.updateLocation);
+router.delete('/:id',verifyToken, checkRole(['admin']), controller.deleteLocation);
 
 module.exports = router;

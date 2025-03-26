@@ -12,18 +12,6 @@ const Semester = sequelize.define('Semester', {
     type: DataTypes.STRING, // e.g. 'Winter', 'Summer'
     allowNull: false,
   },
-  startDate: {
-    type: DataTypes.DATEONLY, // YYYY-MM-DD
-    allowNull: false,
-  },
-  endDate: {
-    type: DataTypes.DATEONLY, // YYYY-MM-DD
-    allowNull: false,
-  },
-  academicYear: {
-    type: DataTypes.STRING,   // e.g. '2024/25'
-    allowNull: false,
-  },
 }, {
   timestamps: true,
 });

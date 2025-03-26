@@ -1,15 +1,16 @@
-const { Semester } = require('../config/associations');
+// controllers/semesterController.js
+const Semester = require('../models/Semester');
 
+// Create a new semester
 exports.createSemester = async (req, res) => {
   try {
-    const { name, startDate, endDate, academicYear } = req.body;
+    const { name } = req.body;
 
-    const semester = await Semester.create({
-      name,
-      startDate,
-      endDate,
-      academicYear
-    });
+    if (!name) {
+      return res.status(400).json({ error: 'Name is required' });
+    }
+
+    const semester = await Semester.create({ name });
 
     res.status(201).json({ message: 'Semester created successfully', semester });
   } catch (error) {
@@ -18,6 +19,7 @@ exports.createSemester = async (req, res) => {
   }
 };
 
+// Get all semesters
 exports.getSemesters = async (req, res) => {
   try {
     const semesters = await Semester.findAll();
@@ -28,6 +30,7 @@ exports.getSemesters = async (req, res) => {
   }
 };
 
+// Get semester by ID
 exports.getSemesterById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -44,20 +47,22 @@ exports.getSemesterById = async (req, res) => {
   }
 };
 
+// Update semester
 exports.updateSemester = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, startDate, endDate, academicYear } = req.body;
+    const { name } = req.body;
 
     const semester = await Semester.findByPk(id);
     if (!semester) {
       return res.status(404).json({ error: 'Semester not found.' });
     }
 
-    semester.name = name ?? semester.name;
-    semester.startDate = startDate ?? semester.startDate;
-    semester.endDate = endDate ?? semester.endDate;
-    semester.academicYear = academicYear ?? semester.academicYear;
+    if (!name) {
+      return res.status(400).json({ error: 'Name is required for update.' });
+    }
+
+    semester.name = name;
     await semester.save();
 
     res.json({ message: 'Semester updated successfully', semester });
@@ -67,6 +72,7 @@ exports.updateSemester = async (req, res) => {
   }
 };
 
+// Delete semester
 exports.deleteSemester = async (req, res) => {
   try {
     const { id } = req.params;

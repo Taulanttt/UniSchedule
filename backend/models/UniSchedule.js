@@ -9,35 +9,36 @@ const UniSchedule = sequelize.define('UniSchedule', {
     primaryKey: true,
   },
   eventType: {
-    type: DataTypes.STRING, // e.g. 'lecture', 'lab'
+    type: DataTypes.STRING, // e.g. 'exam group1'
     allowNull: false,
   },
-  classCode: {
-    type: DataTypes.STRING, // e.g. 'CS-101-GroupA'
-    allowNull: true,
+  // Foreign key to ClassLocation
+  classLocationId: {
+    type: DataTypes.UUID,
+    allowNull: false,
   },
+  // Using TIME type for "HH:MM:SS"
   startTime: {
-    type: DataTypes.DATE,
+    type: DataTypes.TIME,
     allowNull: false,
   },
   endTime: {
-    type: DataTypes.DATE,
+    type: DataTypes.TIME,
     allowNull: false,
   },
-  recurrence: {
-    type: DataTypes.STRING, // e.g. 'Weekly', 'None', 'Daily'
-    allowNull: true,
-  },
+  // e.g. ['Monday','Wednesday']
   daysOfWeek: {
-    type: DataTypes.ARRAY(DataTypes.STRING), // e.g. ['Monday','Wednesday']
-    allowNull: true,
-  },
-  academicYear: {
-    type: DataTypes.STRING, // e.g. '2024/25'
+    type: DataTypes.ARRAY(DataTypes.STRING),
     allowNull: false,
   },
+  // e.g. '2024/25'
+  academicYear: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  // e.g. 1, 2, 3...
   studyYear: {
-    type: DataTypes.INTEGER, // 1,2,3...
+    type: DataTypes.INTEGER,
     allowNull: false,
   },
 }, {
