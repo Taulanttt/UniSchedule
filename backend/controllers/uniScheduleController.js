@@ -14,7 +14,7 @@ exports.createSchedule = async (req, res) => {
       instructorId,
       semesterId,
       eventType,
-      classroom,        // rename in your JSON request => "classroom" is the ID
+      classroom, // classLocationId
       startTime,
       endTime,
       daysOfWeek,
@@ -22,34 +22,26 @@ exports.createSchedule = async (req, res) => {
       studyYear
     } = req.body;
 
-    // 1. Validate foreign keys
+    // Validate foreign keys (Subject, Instructor, Semester, ClassLocation)
     const subject = await Subject.findByPk(subjectId);
-    if (!subject) {
-      return res.status(400).json({ error: 'Invalid subjectId' });
-    }
+    if (!subject) return res.status(400).json({ error: 'Invalid subjectId' });
 
     const instructor = await Instructor.findByPk(instructorId);
-    if (!instructor) {
-      return res.status(400).json({ error: 'Invalid instructorId' });
-    }
+    if (!instructor) return res.status(400).json({ error: 'Invalid instructorId' });
 
     const semester = await Semester.findByPk(semesterId);
-    if (!semester) {
-      return res.status(400).json({ error: 'Invalid semesterId' });
-    }
+    if (!semester) return res.status(400).json({ error: 'Invalid semesterId' });
 
     const classLocation = await ClassLocation.findByPk(classroom);
-    if (!classLocation) {
-      return res.status(400).json({ error: 'Invalid classLocationId' });
-    }
+    if (!classLocation) return res.status(400).json({ error: 'Invalid classLocationId' });
 
-    // 2. Create the schedule
-    const schedule = await UniSchedule.create({
+    // 1. Create the schedule
+    let schedule = await UniSchedule.create({
       subjectId,
       instructorId,
       semesterId,
       eventType,
-      classLocationId: classroom, // store classroom ID as classLocationId
+      classLocationId: classroom,
       startTime,
       endTime,
       daysOfWeek,
@@ -57,10 +49,36 @@ exports.createSchedule = async (req, res) => {
       studyYear
     });
 
-    // 3. Return result
+    // 2. Reload with associations
+    //    This refetches the record along with its related models
+    schedule = await schedule.reload({
+      include: [Subject, Instructor, Semester, ClassLocation]
+    });
+
+    // 3. Build a custom response with only the fields you want
     res.status(201).json({
       message: 'Schedule created successfully',
-      schedule
+      schedule: {
+        id: schedule.id,
+        eventType: schedule.eventType,
+        startTime: schedule.startTime,
+        endTime: schedule.endTime,
+        daysOfWeek: schedule.daysOfWeek,
+        academicYear: schedule.academicYear,
+        studyYear: schedule.studyYear,
+
+        // We can grab the "subject" name from schedule.Subject
+        subjectName: schedule.Subject ? schedule.Subject.name : null,
+        instructorName: schedule.Instructor ? schedule.Instructor.name : null,
+        semesterName: schedule.Semester ? schedule.Semester.name : null,
+        locationName: schedule.ClassLocation ? schedule.ClassLocation.roomName : null,
+
+        // If you still want to show IDs:
+        subjectId: schedule.subjectId,
+        instructorId: schedule.instructorId,
+        semesterId: schedule.semesterId,
+        classLocationId: schedule.classLocationId,
+      }
     });
   } catch (error) {
     console.error('Create Schedule Error:', error);
@@ -72,11 +90,31 @@ exports.createSchedule = async (req, res) => {
 
 exports.getSchedules = async (req, res) => {
   try {
-    // Include all relationships
     const schedules = await UniSchedule.findAll({
       include: [Subject, Instructor, Semester, ClassLocation],
     });
-    res.json(schedules);
+
+    // map each schedule to a custom JSON
+    const mapped = schedules.map((sch) => ({
+      id: sch.id,
+      eventType: sch.eventType,
+      startTime: sch.startTime,
+      endTime: sch.endTime,
+      daysOfWeek: sch.daysOfWeek,
+      academicYear: sch.academicYear,
+      studyYear: sch.studyYear,
+      subjectName: sch.Subject ? sch.Subject.name : null,
+      instructorName: sch.Instructor ? sch.Instructor.name : null,
+      semesterName: sch.Semester ? sch.Semester.name : null,
+      locationName: sch.ClassLocation ? sch.ClassLocation.roomName : null,
+      // if you still want the raw IDs for further usage
+      subjectId: sch.subjectId,
+      instructorId: sch.instructorId,
+      semesterId: sch.semesterId,
+      classLocationId: sch.classLocationId,
+    }));
+
+    res.json(mapped);
   } catch (error) {
     console.error('Get Schedules Error:', error);
     res.status(500).json({
