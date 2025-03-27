@@ -9,7 +9,10 @@ connectDB();
 const app = express();
 app.use(express.json());
 app.use(cors());
-
+app.use(cors({
+    origin: "http://localhost:8080", // The URL your frontend runs on
+    credentials: true,              // Allow cookies/headers
+  }));
 app.get('/', (req, res) => res.send('API is running...'));
 
 // Import routes
