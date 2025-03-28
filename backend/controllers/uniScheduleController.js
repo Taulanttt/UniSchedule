@@ -122,3 +122,101 @@ exports.getSchedules = async (req, res) => {
     });
   }
 };
+
+// Update existing schedule
+exports.updateSchedule = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      subjectId,
+      instructorId,
+      semesterId,
+      eventType,
+      classroom, // classLocationId
+      startTime,
+      endTime,
+      daysOfWeek,
+      academicYear,
+      studyYear
+    } = req.body;
+
+    const schedule = await UniSchedule.findByPk(id);
+    if (!schedule) {
+      return res.status(404).json({ error: 'Schedule not found' });
+    }
+
+    // Optional: Validate foreign keys again
+    const subject = await Subject.findByPk(subjectId);
+    if (!subject) return res.status(400).json({ error: 'Invalid subjectId' });
+
+    const instructor = await Instructor.findByPk(instructorId);
+    if (!instructor) return res.status(400).json({ error: 'Invalid instructorId' });
+
+    const semester = await Semester.findByPk(semesterId);
+    if (!semester) return res.status(400).json({ error: 'Invalid semesterId' });
+
+    const classLocation = await ClassLocation.findByPk(classroom);
+    if (!classLocation) return res.status(400).json({ error: 'Invalid classLocationId' });
+
+    // Update fields
+    await schedule.update({
+      subjectId,
+      instructorId,
+      semesterId,
+      eventType,
+      classLocationId: classroom,
+      startTime,
+      endTime,
+      daysOfWeek,
+      academicYear,
+      studyYear
+    });
+
+    const updatedSchedule = await schedule.reload({
+      include: [Subject, Instructor, Semester, ClassLocation],
+    });
+
+    res.json({
+      message: 'Schedule updated successfully',
+      schedule: {
+        id: updatedSchedule.id,
+        eventType: updatedSchedule.eventType,
+        startTime: updatedSchedule.startTime,
+        endTime: updatedSchedule.endTime,
+        daysOfWeek: updatedSchedule.daysOfWeek,
+        academicYear: updatedSchedule.academicYear,
+        studyYear: updatedSchedule.studyYear,
+        subjectName: updatedSchedule.Subject?.name || null,
+        instructorName: updatedSchedule.Instructor?.name || null,
+        semesterName: updatedSchedule.Semester?.name || null,
+        locationName: updatedSchedule.ClassLocation?.roomName || null,
+        subjectId: updatedSchedule.subjectId,
+        instructorId: updatedSchedule.instructorId,
+        semesterId: updatedSchedule.semesterId,
+        classLocationId: updatedSchedule.classLocationId,
+      }
+    });
+  } catch (error) {
+    console.error('Update Schedule Error:', error);
+    res.status(500).json({ error: 'An error occurred while updating the schedule.' });
+  }
+};
+
+// Delete schedule
+exports.deleteSchedule = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deleted = await UniSchedule.destroy({ where: { id } });
+
+    if (!deleted) {
+      return res.status(404).json({ error: 'Schedule not found' });
+    }
+
+    res.status(204).send(); // No content
+  } catch (error) {
+    console.error('Delete Schedule Error:', error);
+    res.status(500).json({ error: 'An error occurred while deleting the schedule.' });
+  }
+};
+

@@ -3,7 +3,8 @@ const Semester = require('../models/Semester');
 const Instructor = require('../models/Instructor');
 const Subject = require('../models/Subject');
 const UniSchedule = require('../models/UniSchedule');
-const ClassLocation = require('../models/ClassLocation'); // ADD THIS
+const ClassLocation = require('../models/ClassLocation'); 
+const ExamSchedule = require('../models/ExamSchedule');
 
 // 1. Semester → UniSchedule
 Semester.hasMany(UniSchedule, {
@@ -33,11 +34,25 @@ ClassLocation.hasMany(UniSchedule, {
 });
 UniSchedule.belongsTo(ClassLocation, { foreignKey: 'classLocationId' });
 
+Subject.hasMany(ExamSchedule, {
+  foreignKey: 'subjectId',
+  onDelete: 'CASCADE',
+});
+ExamSchedule.belongsTo(Subject, { foreignKey: 'subjectId' });
+
+// Instructor → ExamSchedule
+Instructor.hasMany(ExamSchedule, {
+  foreignKey: 'instructorId',
+  onDelete: 'CASCADE',
+});
+ExamSchedule.belongsTo(Instructor, { foreignKey: 'instructorId' });
+
 // Export them all
 module.exports = {
   Semester,
   Instructor,
   Subject,
   UniSchedule,
-  ClassLocation, // Export this if needed in the controller
+  ClassLocation, 
+  ExamSchedule,
 };
