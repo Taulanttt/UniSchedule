@@ -1,5 +1,6 @@
 // controllers/examScheduleController.js
-const { ExamSchedule, Subject, Instructor } = require('../config/associations');
+
+const { ExamSchedule, Subject, Instructor, Afati } = require('../config/associations');
 
 // Create new exam schedule
 const createExamSchedule = async (req, res) => {
@@ -9,17 +10,23 @@ const createExamSchedule = async (req, res) => {
       studyYear,
       date,
       hour,
-      afati,
+      afatiId,       // <-- now referencing afatiId instead of a string
       subjectId,
-      instructorId
+      instructorId,
     } = req.body;
 
+    // Ensure required fields exist
+    if (!afatiId || !subjectId || !instructorId) {
+      return res.status(400).json({ error: 'Missing required fields (afatiId, subjectId, instructorId)' });
+    }
+
     const newExam = await ExamSchedule.create({
+      eventType: 'exam',   // default or from body if you like
       academicYear,
       studyYear,
       date,
       hour,
-      afati,
+      afatiId,
       subjectId,
       instructorId
     });
@@ -37,7 +44,8 @@ const getAllExamSchedules = async (req, res) => {
     const exams = await ExamSchedule.findAll({
       include: [
         { model: Subject, attributes: ['id', 'name'] },
-        { model: Instructor, attributes: ['id', 'name'] }
+        { model: Instructor, attributes: ['id', 'name'] },
+        { model: Afati, attributes: ['id', 'name'] },
       ],
       order: [['date', 'ASC'], ['hour', 'ASC']]
     });
@@ -57,7 +65,8 @@ const getExamScheduleById = async (req, res) => {
     const exam = await ExamSchedule.findByPk(id, {
       include: [
         { model: Subject, attributes: ['id', 'name'] },
-        { model: Instructor, attributes: ['id', 'name'] }
+        { model: Instructor, attributes: ['id', 'name'] },
+        { model: Afati, attributes: ['id', 'name'] },
       ]
     });
 
@@ -72,40 +81,42 @@ const getExamScheduleById = async (req, res) => {
   }
 };
 
+// Update exam schedule
 const updateExamSchedule = async (req, res) => {
-    try {
-      const { id } = req.params;
-      const {
-        academicYear,
-        studyYear,
-        date,
-        hour,
-        afati,
-        subjectId,
-        instructorId
-      } = req.body;
-  
-      const exam = await ExamSchedule.findByPk(id);
-      if (!exam) {
-        return res.status(404).json({ error: 'Exam schedule not found' });
-      }
-  
-      await exam.update({
-        academicYear,
-        studyYear,
-        date,
-        hour,
-        afati,
-        subjectId,
-        instructorId
-      });
-  
-      res.status(200).json(exam);
-    } catch (error) {
-      console.error('Error updating exam schedule:', error);
-      res.status(500).json({ error: 'Failed to update exam schedule' });
+  try {
+    const { id } = req.params;
+    const {
+      academicYear,
+      studyYear,
+      date,
+      hour,
+      afatiId,        // updated to reference afatiId
+      subjectId,
+      instructorId
+    } = req.body;
+
+    const exam = await ExamSchedule.findByPk(id);
+    if (!exam) {
+      return res.status(404).json({ error: 'Exam schedule not found' });
     }
-  };
+
+    // Update fields
+    await exam.update({
+      academicYear: academicYear ?? exam.academicYear,
+      studyYear: studyYear ?? exam.studyYear,
+      date: date ?? exam.date,
+      hour: hour ?? exam.hour,
+      afatiId: afatiId ?? exam.afatiId,
+      subjectId: subjectId ?? exam.subjectId,
+      instructorId: instructorId ?? exam.instructorId,
+    });
+
+    res.status(200).json(exam);
+  } catch (error) {
+    console.error('Error updating exam schedule:', error);
+    res.status(500).json({ error: 'Failed to update exam schedule' });
+  }
+};
 
 // Delete exam schedule
 const deleteExamSchedule = async (req, res) => {
@@ -117,6 +128,7 @@ const deleteExamSchedule = async (req, res) => {
       return res.status(404).json({ error: 'Exam schedule not found' });
     }
 
+    // Return 204 no content or a JSON message if you prefer
     res.status(204).send();
   } catch (error) {
     console.error('Error deleting exam schedule:', error);
@@ -128,6 +140,6 @@ module.exports = {
   createExamSchedule,
   getAllExamSchedules,
   getExamScheduleById,
+  updateExamSchedule,
   deleteExamSchedule,
-  updateExamSchedule
 };

@@ -5,6 +5,8 @@ const Subject = require('../models/Subject');
 const UniSchedule = require('../models/UniSchedule');
 const ClassLocation = require('../models/ClassLocation'); 
 const ExamSchedule = require('../models/ExamSchedule');
+const Afati = require('../models/Afati');
+
 
 // 1. Semester → UniSchedule
 Semester.hasMany(UniSchedule, {
@@ -46,6 +48,13 @@ Instructor.hasMany(ExamSchedule, {
   onDelete: 'CASCADE',
 });
 ExamSchedule.belongsTo(Instructor, { foreignKey: 'instructorId' });
+// Afati → ExamSchedule
+Afati.hasMany(ExamSchedule, {
+  foreignKey: 'afatiId',
+  onDelete: 'CASCADE',
+});
+ExamSchedule.belongsTo(Afati, { foreignKey: 'afatiId' });
+
 
 // Export them all
 module.exports = {
@@ -55,4 +64,5 @@ module.exports = {
   UniSchedule,
   ClassLocation, 
   ExamSchedule,
+  Afati,
 };

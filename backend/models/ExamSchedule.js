@@ -28,7 +28,7 @@ const ExamSchedule = sequelize.define('ExamSchedule', {
     allowNull: false,
   },
   afati: {
-    type: DataTypes.STRING, // e.g. "February"
+    type: DataTypes.UUID, // e.g. "February"
     allowNull: false,
   },
   // models/ExamSchedule.js

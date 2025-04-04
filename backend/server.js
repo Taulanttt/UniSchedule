@@ -34,6 +34,7 @@ app.use('/api/schedules', require('./routes/uniScheduleRoutes'));
 app.use('/api/class-locations', require('./routes/classLocationRoutes'));
 app.use('/api/exams', require('./routes/examRoutes'));
 app.use('/api/email', require('./routes/emailRoutes'));
+app.use('/api/afati', require('./routes/afatiRoutes'));
 
 
 const PORT = process.env.PORT || 5000;
