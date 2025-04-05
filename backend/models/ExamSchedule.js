@@ -27,7 +27,7 @@ const ExamSchedule = sequelize.define('ExamSchedule', {
     type: DataTypes.TIME, // HH:MM:SS format
     allowNull: false,
   },
-  afati: {
+  afatiId: {
     type: DataTypes.UUID, // e.g. "February"
     allowNull: false,
   },

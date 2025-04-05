@@ -1,8 +1,5 @@
-// controllers/examScheduleController.js
-
 const { ExamSchedule, Subject, Instructor, Afati } = require('../config/associations');
 
-// Create new exam schedule
 const createExamSchedule = async (req, res) => {
   try {
     const {
@@ -10,23 +7,22 @@ const createExamSchedule = async (req, res) => {
       studyYear,
       date,
       hour,
-      afatiId,       // <-- now referencing afatiId instead of a string
+      afatiId,   // now referencing 'afatiId'
       subjectId,
       instructorId,
     } = req.body;
 
-    // Ensure required fields exist
     if (!afatiId || !subjectId || !instructorId) {
       return res.status(400).json({ error: 'Missing required fields (afatiId, subjectId, instructorId)' });
     }
 
     const newExam = await ExamSchedule.create({
-      eventType: 'exam',   // default or from body if you like
+      eventType: 'exam',
       academicYear,
       studyYear,
       date,
       hour,
-      afatiId,
+      afatiId,         // Make sure you are storing afatiId
       subjectId,
       instructorId
     });
@@ -38,18 +34,17 @@ const createExamSchedule = async (req, res) => {
   }
 };
 
-// Get all exam schedules
+// Remainder is same but ensures includes Afati
 const getAllExamSchedules = async (req, res) => {
   try {
     const exams = await ExamSchedule.findAll({
       include: [
         { model: Subject, attributes: ['id', 'name'] },
         { model: Instructor, attributes: ['id', 'name'] },
-        { model: Afati, attributes: ['id', 'name'] },
+        { model: Afati, attributes: ['id', 'name'] }, // must have afatiId association
       ],
       order: [['date', 'ASC'], ['hour', 'ASC']]
     });
-
     res.status(200).json(exams);
   } catch (error) {
     console.error('Error fetching exam schedules:', error);
@@ -57,11 +52,9 @@ const getAllExamSchedules = async (req, res) => {
   }
 };
 
-// Get single exam schedule by ID
 const getExamScheduleById = async (req, res) => {
   try {
     const { id } = req.params;
-
     const exam = await ExamSchedule.findByPk(id, {
       include: [
         { model: Subject, attributes: ['id', 'name'] },
@@ -69,11 +62,9 @@ const getExamScheduleById = async (req, res) => {
         { model: Afati, attributes: ['id', 'name'] },
       ]
     });
-
     if (!exam) {
       return res.status(404).json({ error: 'Exam schedule not found' });
     }
-
     res.status(200).json(exam);
   } catch (error) {
     console.error('Error fetching exam schedule:', error);
@@ -81,7 +72,6 @@ const getExamScheduleById = async (req, res) => {
   }
 };
 
-// Update exam schedule
 const updateExamSchedule = async (req, res) => {
   try {
     const { id } = req.params;
@@ -90,9 +80,9 @@ const updateExamSchedule = async (req, res) => {
       studyYear,
       date,
       hour,
-      afatiId,        // updated to reference afatiId
+      afatiId,
       subjectId,
-      instructorId
+      instructorId,
     } = req.body;
 
     const exam = await ExamSchedule.findByPk(id);
@@ -100,7 +90,6 @@ const updateExamSchedule = async (req, res) => {
       return res.status(404).json({ error: 'Exam schedule not found' });
     }
 
-    // Update fields
     await exam.update({
       academicYear: academicYear ?? exam.academicYear,
       studyYear: studyYear ?? exam.studyYear,
@@ -118,17 +107,13 @@ const updateExamSchedule = async (req, res) => {
   }
 };
 
-// Delete exam schedule
 const deleteExamSchedule = async (req, res) => {
   try {
     const { id } = req.params;
-
     const deleted = await ExamSchedule.destroy({ where: { id } });
     if (!deleted) {
       return res.status(404).json({ error: 'Exam schedule not found' });
     }
-
-    // Return 204 no content or a JSON message if you prefer
     res.status(204).send();
   } catch (error) {
     console.error('Error deleting exam schedule:', error);
