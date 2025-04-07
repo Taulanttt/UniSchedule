@@ -17,7 +17,7 @@ const createExamSchedule = async (req, res) => {
     }
 
     const newExam = await ExamSchedule.create({
-      eventType: 'exam',
+      eventType: 'Provime',
       academicYear,
       studyYear,
       date,

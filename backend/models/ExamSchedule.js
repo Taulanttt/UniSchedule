@@ -9,7 +9,7 @@ const ExamSchedule = sequelize.define('ExamSchedule', {
   },
   eventType: {
     type: DataTypes.STRING,
-    defaultValue: 'exam',
+    defaultValue: 'Provime',
   },
   academicYear: {
     type: DataTypes.STRING,

@@ -9,14 +9,14 @@ const Subject = sequelize.define('Subject', {
     primaryKey: true,
   },
   name: {
-    type: DataTypes.STRING,  // e.g. 'Matematika 1'
+    type: DataTypes.STRING,
     allowNull: false,
   },
-  code: {
-    type: DataTypes.STRING,  // e.g. 'MAT101'
-    unique: true,
-    allowNull: false,
-  },
+  // code: {
+  //   type: DataTypes.STRING,
+  //   unique: true,
+  //   allowNull: false,
+  // },
 }, {
   timestamps: true,
 });

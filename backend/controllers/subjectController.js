@@ -8,15 +8,15 @@ const { Subject } = require('../config/associations');
  */
 exports.createSubject = async (req, res) => {
   try {
-    const { name, code } = req.body;
+    const { name } = req.body;
 
     // Check if code already exists
-    const existingSubject = await Subject.findOne({ where: { code } });
+    const existingSubject = await Subject.findOne({ where: { name } });
     if (existingSubject) {
-      return res.status(400).json({ error: 'Subject code already in use.' });
+      return res.status(400).json({ error: 'Subject already in use.' });
     }
 
-    const subject = await Subject.create({ name, code });
+    const subject = await Subject.create({ name });
     res.status(201).json({ message: 'Subject created successfully', subject });
   } catch (error) {
     console.error('Create Subject Error:', error);
@@ -62,7 +62,7 @@ exports.getSubjectById = async (req, res) => {
 exports.updateSubject = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, code } = req.body;
+    const { name } = req.body;
 
     const subject = await Subject.findByPk(id);
     if (!subject) {
@@ -70,15 +70,14 @@ exports.updateSubject = async (req, res) => {
     }
 
     // Optionally check if code is already in use by another Subject
-    if (code && code !== subject.code) {
-      const existingCode = await Subject.findOne({ where: { code } });
+    if (name && name !== subject.name) {
+      const existingCode = await Subject.findOne({ where: { name } });
       if (existingCode) {
         return res.status(400).json({ error: 'Subject code already in use.' });
       }
     }
 
     subject.name = name ?? subject.name;
-    subject.code = code ?? subject.code;
     await subject.save();
 
     res.json({ message: 'Subject updated successfully', subject });
