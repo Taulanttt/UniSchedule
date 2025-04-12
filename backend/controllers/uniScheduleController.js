@@ -4,9 +4,13 @@ const {
   Subject,
   Instructor,
   Semester,
-  ClassLocation
+  ClassLocation,
+  AcademicYear
 } = require('../config/associations');
 
+//
+// KRIJIMI I ORARIT
+//
 exports.createSchedule = async (req, res) => {
   try {
     const {
@@ -14,15 +18,15 @@ exports.createSchedule = async (req, res) => {
       instructorId,
       semesterId,
       eventType,
-      classroom, // classLocationId
+      classLocationId,
       startTime,
       endTime,
       daysOfWeek,
-      academicYear,
+      academicYearId, // vendosim ID e vitit akademik
       studyYear
     } = req.body;
 
-    // Validate foreign keys (Subject, Instructor, Semester, ClassLocation)
+    // Validim i foreign keys
     const subject = await Subject.findByPk(subjectId);
     if (!subject) return res.status(400).json({ error: 'Invalid subjectId' });
 
@@ -32,30 +36,32 @@ exports.createSchedule = async (req, res) => {
     const semester = await Semester.findByPk(semesterId);
     if (!semester) return res.status(400).json({ error: 'Invalid semesterId' });
 
-    const classLocation = await ClassLocation.findByPk(classroom);
+    const classLocation = await ClassLocation.findByPk(classLocationId);
     if (!classLocation) return res.status(400).json({ error: 'Invalid classLocationId' });
 
-    // 1. Create the schedule
+    const academicYear = await AcademicYear.findByPk(academicYearId);
+    if (!academicYear) return res.status(400).json({ error: 'Invalid academicYearId' });
+
+    // Krijimi i orarit
     let schedule = await UniSchedule.create({
       subjectId,
       instructorId,
       semesterId,
       eventType,
-      classLocationId: classroom,
+      classLocationId,
       startTime,
       endTime,
       daysOfWeek,
-      academicYear,
+      academicYearId, // fusha e re
       studyYear
     });
 
-    // 2. Reload with associations
-    //    This refetches the record along with its related models
+    // Rimbushim me modelet e lidhura
     schedule = await schedule.reload({
-      include: [Subject, Instructor, Semester, ClassLocation]
+      include: [Subject, Instructor, Semester, ClassLocation, AcademicYear]
     });
 
-    // 3. Build a custom response with only the fields you want
+    // Kthejmë një përgjigje me të dhënat e nevojshme
     res.status(201).json({
       message: 'Schedule created successfully',
       schedule: {
@@ -64,20 +70,19 @@ exports.createSchedule = async (req, res) => {
         startTime: schedule.startTime,
         endTime: schedule.endTime,
         daysOfWeek: schedule.daysOfWeek,
-        academicYear: schedule.academicYear,
+        // Marrim emrin e vitit akademik
+        academicYear: schedule.AcademicYear ? schedule.AcademicYear.name : null,
         studyYear: schedule.studyYear,
-
-        // We can grab the "subject" name from schedule.Subject
         subjectName: schedule.Subject ? schedule.Subject.name : null,
         instructorName: schedule.Instructor ? schedule.Instructor.name : null,
         semesterName: schedule.Semester ? schedule.Semester.name : null,
         locationName: schedule.ClassLocation ? schedule.ClassLocation.roomName : null,
-
-        // If you still want to show IDs:
+        // IDs
         subjectId: schedule.subjectId,
         instructorId: schedule.instructorId,
         semesterId: schedule.semesterId,
         classLocationId: schedule.classLocationId,
+        academicYearId: schedule.academicYearId,
       }
     });
   } catch (error) {
@@ -88,30 +93,32 @@ exports.createSchedule = async (req, res) => {
   }
 };
 
+//
+// MARRJA E TË GJITHA ORAREVE
+//
 exports.getSchedules = async (req, res) => {
   try {
     const schedules = await UniSchedule.findAll({
-      include: [Subject, Instructor, Semester, ClassLocation],
+      include: [Subject, Instructor, Semester, ClassLocation, AcademicYear],
     });
 
-    // map each schedule to a custom JSON
     const mapped = schedules.map((sch) => ({
       id: sch.id,
       eventType: sch.eventType,
       startTime: sch.startTime,
       endTime: sch.endTime,
       daysOfWeek: sch.daysOfWeek,
-      academicYear: sch.academicYear,
+      academicYear: sch.AcademicYear ? sch.AcademicYear.name : null,
       studyYear: sch.studyYear,
       subjectName: sch.Subject ? sch.Subject.name : null,
       instructorName: sch.Instructor ? sch.Instructor.name : null,
       semesterName: sch.Semester ? sch.Semester.name : null,
       locationName: sch.ClassLocation ? sch.ClassLocation.roomName : null,
-      // if you still want the raw IDs for further usage
       subjectId: sch.subjectId,
       instructorId: sch.instructorId,
       semesterId: sch.semesterId,
       classLocationId: sch.classLocationId,
+      academicYearId: sch.academicYearId,
     }));
 
     res.json(mapped);
@@ -123,7 +130,9 @@ exports.getSchedules = async (req, res) => {
   }
 };
 
-// Update existing schedule
+//
+// PËRDITËSIMI I ORARIT
+//
 exports.updateSchedule = async (req, res) => {
   try {
     const { id } = req.params;
@@ -132,11 +141,11 @@ exports.updateSchedule = async (req, res) => {
       instructorId,
       semesterId,
       eventType,
-      classroom, // classLocationId
+      classLocationId,
       startTime,
       endTime,
       daysOfWeek,
-      academicYear,
+      academicYearId,
       studyYear
     } = req.body;
 
@@ -145,35 +154,44 @@ exports.updateSchedule = async (req, res) => {
       return res.status(404).json({ error: 'Schedule not found' });
     }
 
-    // Optional: Validate foreign keys again
-    const subject = await Subject.findByPk(subjectId);
-    if (!subject) return res.status(400).json({ error: 'Invalid subjectId' });
-
-    const instructor = await Instructor.findByPk(instructorId);
-    if (!instructor) return res.status(400).json({ error: 'Invalid instructorId' });
-
-    const semester = await Semester.findByPk(semesterId);
-    if (!semester) return res.status(400).json({ error: 'Invalid semesterId' });
-
-    const classLocation = await ClassLocation.findByPk(classroom);
-    if (!classLocation) return res.status(400).json({ error: 'Invalid classLocationId' });
+    // Validim (opsionale)
+    if (subjectId) {
+      const subject = await Subject.findByPk(subjectId);
+      if (!subject) return res.status(400).json({ error: 'Invalid subjectId' });
+    }
+    if (instructorId) {
+      const instructor = await Instructor.findByPk(instructorId);
+      if (!instructor) return res.status(400).json({ error: 'Invalid instructorId' });
+    }
+    if (semesterId) {
+      const semester = await Semester.findByPk(semesterId);
+      if (!semester) return res.status(400).json({ error: 'Invalid semesterId' });
+    }
+    if (classLocationId) {
+      const classLocation = await ClassLocation.findByPk(classLocationId);
+      if (!classLocation) return res.status(400).json({ error: 'Invalid classLocationId' });
+    }
+    if (academicYearId) {
+      const academicYear = await AcademicYear.findByPk(academicYearId);
+      if (!academicYear) return res.status(400).json({ error: 'Invalid academicYearId' });
+    }
 
     // Update fields
     await schedule.update({
-      subjectId,
-      instructorId,
-      semesterId,
-      eventType,
-      classLocationId: classroom,
-      startTime,
-      endTime,
-      daysOfWeek,
-      academicYear,
-      studyYear
+      subjectId: subjectId ?? schedule.subjectId,
+      instructorId: instructorId ?? schedule.instructorId,
+      semesterId: semesterId ?? schedule.semesterId,
+      eventType: eventType ?? schedule.eventType,
+      classLocationId: classLocationId ?? schedule.classLocationId,
+      startTime: startTime ?? schedule.startTime,
+      endTime: endTime ?? schedule.endTime,
+      daysOfWeek: daysOfWeek ?? schedule.daysOfWeek,
+      academicYearId: academicYearId ?? schedule.academicYearId,
+      studyYear: studyYear ?? schedule.studyYear,
     });
 
     const updatedSchedule = await schedule.reload({
-      include: [Subject, Instructor, Semester, ClassLocation],
+      include: [Subject, Instructor, Semester, ClassLocation, AcademicYear],
     });
 
     res.json({
@@ -184,7 +202,7 @@ exports.updateSchedule = async (req, res) => {
         startTime: updatedSchedule.startTime,
         endTime: updatedSchedule.endTime,
         daysOfWeek: updatedSchedule.daysOfWeek,
-        academicYear: updatedSchedule.academicYear,
+        academicYear: updatedSchedule.AcademicYear ? updatedSchedule.AcademicYear.name : null,
         studyYear: updatedSchedule.studyYear,
         subjectName: updatedSchedule.Subject?.name || null,
         instructorName: updatedSchedule.Instructor?.name || null,
@@ -194,6 +212,7 @@ exports.updateSchedule = async (req, res) => {
         instructorId: updatedSchedule.instructorId,
         semesterId: updatedSchedule.semesterId,
         classLocationId: updatedSchedule.classLocationId,
+        academicYearId: updatedSchedule.academicYearId,
       }
     });
   } catch (error) {
@@ -202,13 +221,14 @@ exports.updateSchedule = async (req, res) => {
   }
 };
 
-// Delete schedule
+//
+// FSHIRJA E ORARIT
+//
 exports.deleteSchedule = async (req, res) => {
   try {
     const { id } = req.params;
 
     const deleted = await UniSchedule.destroy({ where: { id } });
-
     if (!deleted) {
       return res.status(404).json({ error: 'Schedule not found' });
     }
@@ -219,4 +239,3 @@ exports.deleteSchedule = async (req, res) => {
     res.status(500).json({ error: 'An error occurred while deleting the schedule.' });
   }
 };
-

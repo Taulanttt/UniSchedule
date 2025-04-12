@@ -12,7 +12,7 @@ const Instructor = sequelize.define('Instructor', {
     allowNull: false,
   },
   role: {
-    type: DataTypes.ENUM('professor', 'assistant'),
+    type: DataTypes.ENUM('Profesor', 'Asistent'),
     allowNull: false,
   }
 });

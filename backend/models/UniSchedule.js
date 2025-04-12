@@ -32,9 +32,9 @@ const UniSchedule = sequelize.define('UniSchedule', {
     allowNull: false,
   },
   // e.g. '2024/25'
-  academicYear: {
-    type: DataTypes.STRING,
-    allowNull: false,
+  academicYearId: {
+    type: DataTypes.UUID,
+    allowNull: true,
   },
   // e.g. 1, 2, 3...
   studyYear: {

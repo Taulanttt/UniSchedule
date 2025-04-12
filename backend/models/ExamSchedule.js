@@ -11,9 +11,9 @@ const ExamSchedule = sequelize.define('ExamSchedule', {
     type: DataTypes.STRING,
     defaultValue: 'Provime',
   },
-  academicYear: {
-    type: DataTypes.STRING,
-    allowNull: false,
+  academicYearId: {
+    type: DataTypes.UUID,
+    allowNull: true,
   },
   studyYear: {
     type: DataTypes.INTEGER,

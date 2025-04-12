@@ -35,6 +35,7 @@ app.use('/api/class-locations', require('./routes/classLocationRoutes'));
 app.use('/api/exams', require('./routes/examRoutes'));
 app.use('/api/email', require('./routes/emailRoutes'));
 app.use('/api/afati', require('./routes/afatiRoutes'));
+app.use('/api/academic-year',require('./routes/academicYearRoutes'));
 
 
 const PORT = process.env.PORT || 5000;

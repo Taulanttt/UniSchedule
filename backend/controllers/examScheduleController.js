@@ -1,28 +1,38 @@
-const { ExamSchedule, Subject, Instructor, Afati } = require('../config/associations');
+// controllers/examScheduleController.js
+const { ExamSchedule, Subject, Instructor, Afati, AcademicYear } = require('../config/associations');
 
+/*
+  KRIJIMI I EXAMSCHEDULE
+  Tani pranon academicYearId në vend të academicYear si string
+*/
 const createExamSchedule = async (req, res) => {
   try {
     const {
-      academicYear,
+      academicYearId,
       studyYear,
       date,
       hour,
-      afatiId,   // now referencing 'afatiId'
+      afatiId,
       subjectId,
       instructorId,
     } = req.body;
 
-    if (!afatiId || !subjectId || !instructorId) {
-      return res.status(400).json({ error: 'Missing required fields (afatiId, subjectId, instructorId)' });
+    // Validim i fushave kyçe
+    if (!afatiId || !subjectId || !instructorId || !academicYearId) {
+      return res.status(400).json({
+        error: 'Missing required fields (afatiId, subjectId, instructorId, academicYearId)'
+      });
     }
+
+    // Mund të validoni edhe ID-të e tjera me .findByPk(...) nëse dëshironi
 
     const newExam = await ExamSchedule.create({
       eventType: 'Provime',
-      academicYear,
+      academicYearId, // ruajmë ID
       studyYear,
       date,
       hour,
-      afatiId,         // Make sure you are storing afatiId
+      afatiId,
       subjectId,
       instructorId
     });
@@ -34,14 +44,18 @@ const createExamSchedule = async (req, res) => {
   }
 };
 
-// Remainder is same but ensures includes Afati
+/*
+  MERR TË GJITHË EXAMSCHEDULE
+  përfshin gjithashtu modelet e lidhura, tani shtojmë edhe AcademicYear
+*/
 const getAllExamSchedules = async (req, res) => {
   try {
     const exams = await ExamSchedule.findAll({
       include: [
         { model: Subject, attributes: ['id', 'name'] },
         { model: Instructor, attributes: ['id', 'name'] },
-        { model: Afati, attributes: ['id', 'name'] }, // must have afatiId association
+        { model: Afati, attributes: ['id', 'name'] },
+        { model: AcademicYear, attributes: ['id', 'name', 'isActive'] },
       ],
       order: [['date', 'ASC'], ['hour', 'ASC']]
     });
@@ -52,6 +66,9 @@ const getAllExamSchedules = async (req, res) => {
   }
 };
 
+/*
+  MERR NJË EXAMSCHEDULE SË BASHKU ME ASOCIMET
+*/
 const getExamScheduleById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -60,6 +77,7 @@ const getExamScheduleById = async (req, res) => {
         { model: Subject, attributes: ['id', 'name'] },
         { model: Instructor, attributes: ['id', 'name'] },
         { model: Afati, attributes: ['id', 'name'] },
+        { model: AcademicYear, attributes: ['id', 'name', 'isActive'] },
       ]
     });
     if (!exam) {
@@ -72,11 +90,14 @@ const getExamScheduleById = async (req, res) => {
   }
 };
 
+/*
+  UPDATE EXAMSCHEDULE
+*/
 const updateExamSchedule = async (req, res) => {
   try {
     const { id } = req.params;
     const {
-      academicYear,
+      academicYearId,
       studyYear,
       date,
       hour,
@@ -90,8 +111,9 @@ const updateExamSchedule = async (req, res) => {
       return res.status(404).json({ error: 'Exam schedule not found' });
     }
 
+    // Përditëso vetëm fushat që vijnë
     await exam.update({
-      academicYear: academicYear ?? exam.academicYear,
+      academicYearId: academicYearId ?? exam.academicYearId,
       studyYear: studyYear ?? exam.studyYear,
       date: date ?? exam.date,
       hour: hour ?? exam.hour,
@@ -107,6 +129,9 @@ const updateExamSchedule = async (req, res) => {
   }
 };
 
+/*
+  FSHIJE NJË EXAMSCHEDULE
+*/
 const deleteExamSchedule = async (req, res) => {
   try {
     const { id } = req.params;
