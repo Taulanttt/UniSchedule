@@ -1,4 +1,3 @@
-// controllers/uniScheduleController.js
 const {
   UniSchedule,
   Subject,
@@ -18,15 +17,15 @@ exports.createSchedule = async (req, res) => {
       instructorId,
       semesterId,
       eventType,
-      classLocationId,
+      classLocationId,  // e presim nga front-end
       startTime,
       endTime,
       daysOfWeek,
-      academicYearId, // vendosim ID e vitit akademik
+      academicYearId,   // e presim si ID nga front-end
       studyYear
     } = req.body;
 
-    // Validim i foreign keys
+    // 1) Validim i foreign keys
     const subject = await Subject.findByPk(subjectId);
     if (!subject) return res.status(400).json({ error: 'Invalid subjectId' });
 
@@ -42,7 +41,7 @@ exports.createSchedule = async (req, res) => {
     const academicYear = await AcademicYear.findByPk(academicYearId);
     if (!academicYear) return res.status(400).json({ error: 'Invalid academicYearId' });
 
-    // Krijimi i orarit
+    // 2) Krijimi i orarit
     let schedule = await UniSchedule.create({
       subjectId,
       instructorId,
@@ -52,16 +51,16 @@ exports.createSchedule = async (req, res) => {
       startTime,
       endTime,
       daysOfWeek,
-      academicYearId, // fusha e re
+      academicYearId,
       studyYear
     });
 
-    // Rimbushim me modelet e lidhura
+    // 3) Rimbushim me modelet e lidhura
     schedule = await schedule.reload({
       include: [Subject, Instructor, Semester, ClassLocation, AcademicYear]
     });
 
-    // Kthejmë një përgjigje me të dhënat e nevojshme
+    // 4) Kthejmë përgjigje
     res.status(201).json({
       message: 'Schedule created successfully',
       schedule: {
@@ -70,7 +69,6 @@ exports.createSchedule = async (req, res) => {
         startTime: schedule.startTime,
         endTime: schedule.endTime,
         daysOfWeek: schedule.daysOfWeek,
-        // Marrim emrin e vitit akademik
         academicYear: schedule.AcademicYear ? schedule.AcademicYear.name : null,
         studyYear: schedule.studyYear,
         subjectName: schedule.Subject ? schedule.Subject.name : null,
@@ -82,7 +80,7 @@ exports.createSchedule = async (req, res) => {
         instructorId: schedule.instructorId,
         semesterId: schedule.semesterId,
         classLocationId: schedule.classLocationId,
-        academicYearId: schedule.academicYearId,
+        academicYearId: schedule.academicYearId
       }
     });
   } catch (error) {
@@ -114,6 +112,7 @@ exports.getSchedules = async (req, res) => {
       instructorName: sch.Instructor ? sch.Instructor.name : null,
       semesterName: sch.Semester ? sch.Semester.name : null,
       locationName: sch.ClassLocation ? sch.ClassLocation.roomName : null,
+      // IDs
       subjectId: sch.subjectId,
       instructorId: sch.instructorId,
       semesterId: sch.semesterId,
@@ -154,7 +153,7 @@ exports.updateSchedule = async (req, res) => {
       return res.status(404).json({ error: 'Schedule not found' });
     }
 
-    // Validim (opsionale)
+    // Validim opsional i foreign keys
     if (subjectId) {
       const subject = await Subject.findByPk(subjectId);
       if (!subject) return res.status(400).json({ error: 'Invalid subjectId' });
@@ -172,8 +171,8 @@ exports.updateSchedule = async (req, res) => {
       if (!classLocation) return res.status(400).json({ error: 'Invalid classLocationId' });
     }
     if (academicYearId) {
-      const academicYear = await AcademicYear.findByPk(academicYearId);
-      if (!academicYear) return res.status(400).json({ error: 'Invalid academicYearId' });
+      const ay = await AcademicYear.findByPk(academicYearId);
+      if (!ay) return res.status(400).json({ error: 'Invalid academicYearId' });
     }
 
     // Update fields
