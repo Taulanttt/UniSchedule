@@ -1,24 +1,26 @@
 {
-    "development": {
-      "username": "postgres",
-      "password": "mypassword",
-      "database": "unischedule",
-      "host": "localhost",
-      "dialect": "postgres"
-    },
-    "test": {
-      "username": "postgres",
-      "password": "mypassword",
-      "database": "unischedule_test",
-      "host": "localhost",
-      "dialect": "postgres"
-    },
-    "production": {
-      "username": "postgres",
-      "password": "mypassword",
-      "database": "unischedule_prod",
-      "host": "localhost",
-      "dialect": "postgres"
+  "development": {
+    "username": "postgres",
+    "password": "mypassword",
+    "database": "unischedule",
+    "host": "localhost",
+    "dialect": "postgres"
+  },
+  "test": {
+    "username": "postgres",
+    "password": "mypassword",
+    "database": "unischedule_test",
+    "host": "localhost",
+    "dialect": "postgres"
+  },
+  "production": {
+    "use_env_variable": "DATABASE_URL",
+    "dialect": "postgres",
+    "dialectOptions": {
+      "ssl": {
+        "require": true,
+        "rejectUnauthorized": false
+      }
     }
   }
-  
+}
