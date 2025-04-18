@@ -10,15 +10,32 @@ connectDB();
 const app = express();
 app.use(express.json());
 
-// ✅ Only use *one* cors config — with proper origin and credentials
+const allowedOrigins = [
+  "http://localhost:8080",
+  "https://unischedulem.netlify.app"
+];
+
 app.use(cors({
-  origin: "http://localhost:8080", // Your frontend URL
-  credentials: true,               // Allow sending cookies/headers
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true
 }));
 
-// Optional: Allow preflight requests
+// Optional: Preflight support
 app.options('*', cors({
-  origin: "http://localhost:8080",
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true
 }));
 
