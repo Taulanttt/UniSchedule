@@ -11,11 +11,10 @@ exports.verifyToken = (req, res, next) => {
       return res.status(401).json({ error: 'No token provided' });
     }
 
-    const token = jwt.sign(
-      { userId: user.id, role: user.role }, // ✅ must match what your middleware expects
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
-    );
+    const token = authHeader.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
 
     // Verify JWT
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
