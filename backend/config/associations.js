@@ -6,6 +6,8 @@ const UniSchedule = require('../models/UniSchedule');
 const ClassLocation = require('../models/ClassLocation');
 const ExamSchedule = require('../models/ExamSchedule');
 const Afati = require('../models/Afati');
+const ListEmail = require('../models/ListEmail'); // 👈 add this line
+
 
 // + importojmë modelin e ri
 const AcademicYear = require('../models/AcademicYear');
@@ -92,5 +94,6 @@ module.exports = {
   ClassLocation,
   ExamSchedule,
   Afati,
-  AcademicYear, // shtuar
+  AcademicYear,
+  ListEmail
 };

@@ -3,6 +3,7 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const { connectDB } = require('./config/database');
 require('./config/associations'); 
+require('./models/ListEmail');
 
 dotenv.config();
 connectDB();
@@ -53,6 +54,8 @@ app.use('/api/exams', require('./routes/examRoutes'));
 app.use('/api/email', require('./routes/emailRoutes'));
 app.use('/api/afati', require('./routes/afatiRoutes'));
 app.use('/api/academic-year',require('./routes/academicYearRoutes'));
+app.use('/api/emailList',require('./routes/emailListRoutes'));
+
 
 
 const PORT = process.env.PORT || 5000;
