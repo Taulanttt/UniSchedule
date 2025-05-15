@@ -11,12 +11,7 @@ const Subject = sequelize.define('Subject', {
   name: {
     type: DataTypes.STRING,
     allowNull: false,
-  },
-  // code: {
-  //   type: DataTypes.STRING,
-  //   unique: true,
-  //   allowNull: false,
-  // },
+  }
 }, {
   timestamps: true,
 });
