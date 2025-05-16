@@ -83,3 +83,19 @@ exports.login = async (req, res) => {
     res.status(500).json({ error: 'Error logging in' });
   }
 };
+
+
+/**
+ * User Logout – cookie edition
+ * Simply clears the “token” cookie so the browser no longer sends it.
+ */
+exports.logout = (req, res) => {
+  // Same cookie options you used when LOGIN set the cookie
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+  });
+
+  return res.json({ message: 'Logged out successfully' });
+};
