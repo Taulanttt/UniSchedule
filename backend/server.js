@@ -13,7 +13,7 @@ app.use(express.json());
 
 const allowedOrigins = [
   "http://localhost:8080",
-  "https://unischedulem.netlify.app"
+  "https://unischeduleuibm.netlify.app"
 ];
 
 app.use(cors({
